@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchCoin, addExpense, editExpense, setIsEditing } from '../redux/actions'; // Certifique-se de importar a ação de edição
+import { fetchCoin, addExpense, editExpense, setIsEditing } from '../redux/actions';
 import { ReduxState, Dispatch, Expense, ExchangeRates } from '../types/types';
 
 const INITIAL_EXPENSE = {
@@ -15,6 +15,7 @@ const INITIAL_EXPENSE = {
 function WalletForm() {
   const [selectedTag, setSelectedTag] = useState('Alimentação');
   const [selectedMethod, setSelectedMethod] = useState('Dinheiro');
+  const [expenseData, setExpenseData] = useState(INITIAL_EXPENSE);
   const isEditing = useSelector((state: ReduxState) => state.wallet.isEditing);
   const dataState = useSelector((state: ReduxState) => state);
   const currencies = dataState.wallet.currencies || [];
@@ -24,10 +25,9 @@ function WalletForm() {
     dispatch(fetchCoin() as any);
   }, [dispatch]);
 
-  const [expenseData, setExpenseData] = useState(INITIAL_EXPENSE);
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setExpenseData({ ...expenseData, [name]: value });
+    setExpenseData((prevExpenseData) => ({ ...prevExpenseData, [name]: value }));
   };
 
   const clearExpenseData = () => {
@@ -35,13 +35,7 @@ function WalletForm() {
     setIsEditing(false);
   };
 
-  const handleButtonClick = () => {
-    if (isEditing) {
-      handleAddExpense();
-    } else {
-      handleAddExpense();
-    }
-  };
+  const handleButtonClick = () => handleAddExpense();
 
   const handleAddExpense = async () => {
     try {
@@ -58,8 +52,8 @@ function WalletForm() {
           };
         }
       });
-
       const selectedCurrencyRate = exchangeRates[expenseData.currency];
+
       if (selectedCurrencyRate) {
         const newExchangeRates = { ...data };
 
@@ -73,9 +67,7 @@ function WalletForm() {
             exchangeRates: newExchangeRates,
           };
           dispatch(editExpense(editedExpenseData));
-          console.log('editedExpense', editedExpenseData);
           clearExpenseData();
-          setIsEditing(false);
         } else {
           const newExpense: Expense = {
             id: dataState.wallet.expenses.length,
@@ -88,7 +80,6 @@ function WalletForm() {
           };
 
           dispatch(addExpense(newExpense));
-          console.log('newExpense', newExpense);
           clearExpenseData();
         }
       } else {
@@ -101,7 +92,7 @@ function WalletForm() {
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setExpenseData({ ...expenseData, [name]: value });
+    setExpenseData((prevExpenseData) => ({ ...prevExpenseData, [name]: value }));
   };
 
   return (
